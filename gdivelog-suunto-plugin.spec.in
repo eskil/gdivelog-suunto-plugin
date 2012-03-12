@@ -1,0 +1,43 @@
+Summary: Suunto plugin for gdivelog
+Name: gdivelog-suunto-plugin
+Version: @VERSION@
+Release: 1
+License: GPL
+Group: Applications/Productivity
+URL: http://gdivelog.sourceforge.net/
+Source0: %{name}-%{version}.tar.bz2
+Buildroot: %{_tmppath}/%{name}-%{version}-%{release}-root
+BuildPrereq: gdivelog-devel >= 0.5.1
+Requires: gdivelog >= 0.5.1
+
+%description 
+Plugin to enable gdivelog to download Suunto Cobra, Mosquito, Spyder, Stinger, Vyper and Vytec dive computers
+
+%prep 
+%setup -q
+
+%build 
+%configure
+make
+
+%install 
+rm -rf %{buildroot}
+
+%makeinstall libdir="%{buildroot}/usr/lib/gdivelog"
+
+%clean 
+rm -fr %{buildroot}
+
+%files 
+%defattr(-,root,root)
+%doc README COPYING AUTHORS ChangeLog INSTALL NEWS TODO
+%{_libdir}/gdivelog/*.so
+%exclude %{_libdir}/gdivelog/*.a
+%exclude %{_libdir}/gdivelog/*.la
+%exclude %{_datadir}/doc/gdivelog-suunto-plugin/*
+
+%changelog
+
+* Wed Sep 20 2005	Simon Naunton	<snaunton@gmail.com>
+ - Initial.
+
