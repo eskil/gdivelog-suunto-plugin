@@ -1,0 +1,16 @@
+src/gdivelog-suunto-plugin.la
+src/.deps/*
+src/.libs/*
+*.lo
+*~
+.tm_project.cache
+Makefile
+config.log
+config.h
+config.status
+gdivelog-suunto-plugin.spec
+libtool
+po/*
+Makefile
+*o
+stamp-h1
