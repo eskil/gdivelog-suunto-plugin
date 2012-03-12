@@ -195,7 +195,7 @@ static gint suunto_open(const char *device)
       tcgetattr(fd,&old_termios);
       tcflush(fd, TCIOFLUSH);
       settings.c_cflag=CS8|CREAD|PARENB|PARODD|CLOCAL;
-      settings.c_iflag=IGNBRK/*|IGNPAR*/;
+      settings.c_iflag=IGNBRK|IGNPAR;
       settings.c_lflag=0;
       settings.c_oflag=0;
       settings.c_cc[VMIN]=0;
@@ -271,53 +271,61 @@ static gint suunto_write_serial(gint fd,guchar *buffer,gint len)
 static gboolean suunto_detect_interface(gint fd) 
 {
   int rc=0;
-  gboolean /*detected=TRUE,*/rval=FALSE;
+  gboolean detected=TRUE,rval=FALSE;
 	
   set_rts(fd,RTS_STATUS_ON);
   usleep(300000);
   set_rts(fd,RTS_STATUS_OFF);
   if(suunto_send_testcmd(fd,"AT\r")) {
-/*	  
+
     if(suunto_read_serial(fd)!='A' || suunto_read_serial(fd)!='T' || suunto_read_serial(fd) !='\r') {
       g_printf(_("Interface not responding in probe mode"));
 	  detected=FALSE;
     }
-*/	
+
+/*
     suunto_read_serial(fd);
     suunto_read_serial(fd);
     suunto_read_serial(fd);
+*/
+
     rc=suunto_read_serial(fd);
-/*  
 	if(rc!=-1) {
       g_printf(_("Extraneous character. Is line connected to a modem?"));
     }
-*/
+
     set_rts(fd,RTS_STATUS_ON);	/* Try transfer mode now */
     if(!suunto_send_testcmd(fd,"AT\r")) g_printerr(_("Cannot detect Suunto interface.")); 
     else {
+	/* From dt_ab, http://www.acs.uni-duesseldorf.de/~becka/dive/divetools/index.html:
+	 * This delay seems to be required by many USB-serial converters.
+	 * Does not seem to cause other problems, so I put it in.
+	 * Sumbitted by Christian Rüb to vyperlink. Thanks.
+	 */
+	  usleep(300000);
       rval=TRUE;	
       set_rts(fd,RTS_STATUS_OFF);
       rc=suunto_read_serial(fd);
       if(rc==-1) {
-/*
+
         if(detected) {	  
-          g_printf(_("Original Suunto interface found"));
+          g_printf(_("Original Suunto interface found\n"));
         }
         else {		  
-		  g_printf(_("Original Sunnto interface with DC already attached"));
+		  g_printf(_("Original Sunnto interface with DC already attached\n"));
 	    }
-*/
+
         ifacealwaysechos=FALSE;
       }
       else {
-/*
+
         if(rc!='A' || suunto_read_serial(fd)!='T' || suunto_read_serial(fd)!='\r') {
-          g_printf(_("Interface not responding when RTS is on."));
+          g_printf(_("Interface not responding when RTS is on.\n"));
         }
         if(suunto_read_serial(fd)!=-1) {
-          g_printf(_("Clone interface without RTS-switching"));
+          g_printf(_("Clone interface without RTS-switching\n"));
         }
-*/
+
         suunto_read_serial(fd);
         suunto_read_serial(fd);
         suunto_read_serial(fd);
@@ -423,6 +431,8 @@ SuuntoModel suunto_get_model(gint fd)
         model=SUUNTO_MODEL_MOSQUITO;
         break;
     }
+  } else {
+	g_printerr(_("Could not read mode byte\n"));
   }
   return model;
 }
